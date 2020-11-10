@@ -32,6 +32,7 @@ public:
  static unsigned int decayRate;					// 1/16 of the rate in Milliseconds in which to decay notes
  static boolean channelActive[];        		// An array which stores which channels are active and which are not
  void tune_stopscore (void);					// Stop playing the score
+ void next();
 };
 
 #endif

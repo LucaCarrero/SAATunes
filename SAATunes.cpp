@@ -63,7 +63,8 @@
 #include <arduino.h>
 
 #include "SAATunes.h"
-
+#include <Wire.h>
+#define PCF_7585_ADRESS 0x20
 //Volume (Velocity) variables
 #define DO_VOLUME 1         // generate volume-modulating code? Needs -v on Miditones.
 #define ASSUME_VOLUME  0    // if the file has no header, should we assume there is volume info?
@@ -130,67 +131,87 @@ void writeAddress() {
   
 }
 
+void pf575_write(uint16_t data) 
+{
+  Wire.beginTransmission(0x20);
+  Wire.write(lowByte(data));
+  Wire.write(highByte(data));
+  Wire.endTransmission();
+}
+
 
 //Initiate the WR and AO pins, as well as reset/enable all sound channels
 void SAATunes::init_pins (byte AZ, byte WE) {
-	
+	Wire.begin();
 	AO = AZ;
 	WR = WE;
 	
-	DDRD = B11111111;
+	 Serial.println(9600);
     pinMode(AO, OUTPUT);
     pinMode(WR, OUTPUT);
 	digitalWrite(WR, HIGH);
 	
 	//Reset/Enable all the sound channels
 	digitalWrite(AO, HIGH);
-    PORTD = 0x1C;
+	pf575_write(word(0x00,0x1C));
+    //PORTD = 0x1C;
     writeAddress();
 
     digitalWrite(AO, LOW);
-    PORTD = 0x02;
+	pf575_write(word(0x00,0x02));
+    //PORTD = 0x02;
     writeAddress();
 
     digitalWrite(AO, LOW);
-    PORTD = 0x00;
+	pf575_write(word(0x00,0x00));
+    //PORTD = 0x00;
     writeAddress();
 	
 	digitalWrite(AO, HIGH);
-    PORTD = 0x1C;
+	pf575_write(word(0x00,0x1C));
+    //PORTD = 0x1C;
     writeAddress();
+
     digitalWrite(AO, LOW);
-    PORTD = B00000001;
+	pf575_write(word(0x00,0x01));
+    //PORTD = B00000001;
     writeAddress();
 	
 	//Disable the noise channels
 	digitalWrite(AO, HIGH);
-	PORTD = 0x15;
+	pf575_write(word(0x00,0x15));
+	//PORTD = 0x15;
 	writeAddress();
 
 	digitalWrite(AO, LOW);
-	PORTD = B00000000;
+	pf575_write(word(0x00,0x00));
+	//PORTD = B00000000;
 	writeAddress();
 	
 	//Disable envelopes on Channels 2 and 5
 	digitalWrite(AO, HIGH);
-	PORTD = 0x18;
+	pf575_write(word(0x00,0x18));
+	//PORTD = 0x18;
 	writeAddress();
 
 	digitalWrite(AO, LOW);
-	PORTD = B00000000;
+	pf575_write(word(0x00,0x00));
+	//PORTD = B00000000;
 	writeAddress();
 	
 	digitalWrite(AO, HIGH);
-	PORTD = 0x19;
+	pf575_write(word(0x00,0x19));
+	//PORTD = 0x19;
 	writeAddress();
 
 	digitalWrite(AO, LOW);
-	PORTD = B00000000;
+	pf575_write(word(0x00,0x00));
+	//PORTD = B00000000;
 	writeAddress();
 	
 	// Set up the interrupt
-	OCR0A = 0xAF;
-	TIMSK0 |= _BV(OCIE0A);
+	//OCR0A = 0xAF;
+	//TIMSK0 |= _BV(OCIE0A);
 	
 	//Play a little startup sound (Sounds cool, and gets rid of any random startup noise on the channels!)
 	
@@ -249,16 +270,19 @@ void tune_playnote (byte chan, byte note, byte volume) {
 
   //Octave addressing and setting code:
   digitalWrite(AO, HIGH);
-  PORTD = octaveAdr[chan / 2];
+  pf575_write(word(0x00,octaveAdr[chan / 2]));
+  //PORTD = octaveAdr[chan / 2];
   writeAddress();
 
   digitalWrite(AO, LOW);
   if (chan == 0 || chan == 2 || chan == 4) {
-    PORTD = octave | (prevOctaves[chan + 1] << 4); //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
+	  pf575_write(word(0x00,octave | (prevOctaves[chan + 1] << 4)));
+    //PORTD = octave | (prevOctaves[chan + 1] << 4); //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
   }
   
   if (chan == 1 || chan == 3 || chan == 5) {   
-    PORTD = (octave << 4) | prevOctaves[chan - 1]; //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
+	pf575_write(word(0x00,(octave << 4) | prevOctaves[chan - 1]));
+    //PORTD = (octave << 4) | prevOctaves[chan - 1]; //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
   }
   
   writeAddress();
@@ -266,7 +290,8 @@ void tune_playnote (byte chan, byte note, byte volume) {
   //Note addressing and playing code
   //Set address to the channel's address
   digitalWrite(AO, HIGH);
-  PORTD = channelAdr[chan];
+  pf575_write(word(0x00,channelAdr[chan]));
+  //PORTD = channelAdr[chan];
   writeAddress();
 
   //EXPERIEMNTAL WARBLE CODE
@@ -275,13 +300,17 @@ void tune_playnote (byte chan, byte note, byte volume) {
   
   //Write actual note data
   digitalWrite(AO, LOW);
-  PORTD = noteAdr[noteVal];
+  pf575_write(word(0x00,noteAdr[noteVal]));
+  //PORTD = noteAdr[noteVal];
   writeAddress();
 
   //Volume updating
   //Set the Address to the volume channel
   digitalWrite(AO, HIGH);
-  PORTD = chan, HEX;
+
+  pf575_write(word(0x00,(chan, HEX)));
+  
+  //PORTD = chan, HEX;
   writeAddress();
   
   #if DO_DECAY
@@ -296,7 +325,8 @@ void tune_playnote (byte chan, byte note, byte volume) {
      byte vol = volume / 8;
 
 	digitalWrite(AO, LOW);
-	PORTD = (vol << 4) | vol;
+	pf575_write(word(0x00,(vol << 4) | vol));
+	//PORTD = (vol << 4) | vol;
 	writeAddress();
 	
 	#if DO_DECAY
@@ -308,7 +338,8 @@ void tune_playnote (byte chan, byte note, byte volume) {
 		
 	//If we're not doing velocity, then just set it to max.
 	digitalWrite(AO, LOW);
-	PORTD = B11111111;
+	pf575_write(word(0x00,0xFF));
+	//PORTD = B11111111;
 	writeAddress();
 	
 	#if DO_DECAY
@@ -482,7 +513,7 @@ void SAATunes::tune_stopscore (void) {
 //Timer stuff
 // Interrupt is called once a millisecond
  
-SIGNAL(TIMER0_COMPA_vect) {
+void SAATunes::next() {
      
 	//Begin new note code
 	if (SAATunes::tune_playing && wait_toggle_count && --wait_toggle_count == 0) {
@@ -502,7 +533,10 @@ SIGNAL(TIMER0_COMPA_vect) {
 				if(decayTimer[x] >= SAATunes::decayRate){ //Check to see if we've met or exceeded the decay rate
 					//Set the Address to the volume channel
 					digitalWrite(AO, HIGH);
-					PORTD = x, HEX;
+					
+					pf575_write(word(0x00, (x, HEX)));
+					
+					//PORTD = x, HEX;
 					writeAddress();
 				
 					//Read the current volume, subtract one
@@ -511,7 +545,8 @@ SIGNAL(TIMER0_COMPA_vect) {
 				
 					//Then, write modified volume
 					digitalWrite(AO, LOW);
-					PORTD = (volume << 4) | volume;
+					pf575_write(word(0x00,(volume << 4) | volume));
+					//PORTD = (volume << 4) | volume;
 					writeAddress();
 				
 					decayTimer[x] = 0;
