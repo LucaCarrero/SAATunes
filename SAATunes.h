@@ -27,12 +27,10 @@ class SAATunes
 {
 public:
  void init_pins(byte AZ, byte WE); 				// Define the pins that WE and AO are connected to (Naming conflict with AO, which is why it's AZ)
- void tune_playscore (const byte *score);		// Start playing a score
- volatile static boolean tune_playing;			// Is the score still playing?
  static unsigned int decayRate;					// 1/16 of the rate in Milliseconds in which to decay notes
- static boolean channelActive[];        		// An array which stores which channels are active and which are not
- void tune_stopscore (void);					// Stop playing the score
- void next();
+ static boolean channelActive[];        		// An array which stores which channels are active and which are no
+ void musicNote(byte chan, byte note, byte volume);
+ void stopNote(byte chan);
 };
 
 #endif
