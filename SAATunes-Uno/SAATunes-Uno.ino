@@ -1,10 +1,6 @@
 #include "SAATunes.h"
 
-//Include the file with the bytestream to interpret
-#include "RagePenny.h"
-
 SAATunes st;
-int noteDuration = 150;
 
 // [0]-ch1 ... [5]-ch6 [6]-duration
 int noteList[][7] = {
@@ -25,6 +21,7 @@ int noteList[][7] = {
  {0,0,0,0,0,0,150},
  {0,0,0,0,0,0,150},
 };
+int noteDuration = 150;
 int sequenzPosition = -1;
 int delayCont = 0;
 int sequenzLenght = 16;
@@ -68,8 +65,4 @@ void setup() {
 }
 
 void loop() {
- // delay(5024);
- // st.musicNote(4, 64, 127);
- // delay(5024);
- // st.stopNote(4);
 }

@@ -1,52 +1,32 @@
-
-
 #include <arduino.h>
-
-#include "SAATunes.h"
 #include <Wire.h>
-#define PCF_7585_ADRESS 0x20
+#include "SAATunes.h"
+
 //Volume (Velocity) variables
 #define DO_VOLUME 1         // generate volume-modulating code? Needs -v on Miditones.
-#define ASSUME_VOLUME  0    // if the file has no header, should we assume there is volume info?
-#define DO_PERCUSSION 1     // generate percussion sounds? Needs DO_VOLUME, and -pt on Miditones
-#define DO_DECAY 1     		// Do decay on sustained notes? We'll assume yes. Later we might make it toggleable in program.
-
-static boolean volume_present = ASSUME_VOLUME;
-
+// pcf8575 i2c addr
+#define PCF_7585_ADRESS 0x20
 byte WR;
 byte AO;
 
-//Decay variables. Variable 0 in array is Channel 0, etc.
-#if DO_DECAY
-byte decayTimer[] = {0, 0, 0, 0, 0, 0};
-byte decayVolume[] = {0, 0, 0, 0, 0, 0};
-boolean doingDecay[] = {false, false, false, false, false, false};
-
-//Modifiable delay rate variable (In MS, and each time the specified number of MS has passed, decays volume by 1/16).
-unsigned int SAATunes::decayRate = 125; //Originally 125, which is what I determined is /roughly/ correct for how long piano notes sustain while held down
-#endif
-
 byte prevOctaves[] = {0, 0, 0, 0, 0, 0}; //Array for storing the last octave value for each channel
-
 boolean SAATunes::channelActive[] = {0, 0, 0, 0, 0, 0}; //Array for storing whether a channel is active or not
 
 void tune_playnote (byte chan, byte note, byte volume);
 void tune_stopnote (byte chan);
 void tune_stepscore (void);
 
-
 // ******** Code Blocks ******** \\
-
 
 //Pulses the WR pin connected to the SA1099 to load an address
 void writeAddress() {
-	
   digitalWrite(WR, LOW);
   delayMicroseconds(5);
   digitalWrite(WR, HIGH);
   
 }
 
+// function to write data on saa
 void pf575_write(uint16_t data) 
 {
   Wire.beginTransmission(0x20);
@@ -55,10 +35,12 @@ void pf575_write(uint16_t data)
   Wire.endTransmission();
 }
 
+// class wrapper for play function
 void SAATunes::musicNote(byte chan, byte note, byte volume){
 	tune_playnote ( chan,  note,  volume);
 }
 
+// class wrapper for stop function
  void  SAATunes::stopNote(byte chan){
 	tune_stopnote (chan);
 }
@@ -68,8 +50,7 @@ void SAATunes::init_pins (byte AZ, byte WE) {
 	Wire.begin();
 	AO = AZ;
 	WR = WE;
-	
-	 Serial.println(9600);
+
     pinMode(AO, OUTPUT);
     pinMode(WR, OUTPUT);
 	digitalWrite(WR, HIGH);
@@ -197,17 +178,10 @@ void tune_playnote (byte chan, byte note, byte volume) {
   byte volAddress[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
   
 	digitalWrite(AO, HIGH);
-  pf575_write(word(0x00, volAddress[byte(chan)]));
+ 	pf575_write(word(0x00, volAddress[byte(chan)]));
 	writeAddress();
-  
-  #if DO_DECAY
-	//Decay channel updating
-	doingDecay[chan] = true;
-	decayTimer[chan] = 0;
-  #endif
 
   #if DO_VOLUME
-	
 	//Velocity is a value from 0-127, the SAA1099 only has 16 levels, so divide by 8.
      byte vol = volume / 8;
 
@@ -215,12 +189,6 @@ void tune_playnote (byte chan, byte note, byte volume) {
 	pf575_write(word(0x00,(vol << 4) | vol));
 	//PORTD = (vol << 4) | vol;
 	writeAddress();
-	
-	#if DO_DECAY
-		//Update the beginning volume for the decay controller
-		decayVolume[chan] = vol;
-	#endif
-	
   #else
 		
 	//If we're not doing velocity, then just set it to max.
@@ -228,12 +196,7 @@ void tune_playnote (byte chan, byte note, byte volume) {
 	pf575_write(word(0x00,0xFF));
 	//PORTD = B11111111;
 	writeAddress();
-	
-	#if DO_DECAY
-		//Update the beginning volume for the decay controller
-		decayVolume[chan] = 16;
-	#endif
-      
+  
   #endif
 }
 
@@ -243,17 +206,16 @@ void tune_playnote (byte chan, byte note, byte volume) {
 //-----------------------------------------------
 
 void tune_stopnote (byte chan) {
-  byte volAddress[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+  	byte volAddress[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
   
 	digitalWrite(AO, HIGH);
 	//PORTD = volAddress[byte(chan)];
-  pf575_write(word(0x00, volAddress[byte(chan)]));
+ 	pf575_write(word(0x00, volAddress[byte(chan)]));
 	writeAddress();
 
 	digitalWrite(AO, LOW);
 	//PORTD = 0x00;
-  pf575_write(word(0x00,0x00));
+  	pf575_write(word(0x00,0x00));
 	writeAddress();
-	
 }
 
