@@ -28,7 +28,7 @@ What I would like to add in the future
 	 	- Support for sustain pedal being used in a MIDI recording (Not sure if Len's original library supports this or not)
 	 
 
-Note Duratioon calculation: https://rechneronline.de/musik/note-length.php
-Super Mario Bross 1987 music sheet: http://www.mariopiano.com/mario-sheet-music-overworld-main-theme.html
-Arduino music sheet convertion: https://github.com/nseidle/AxelF_DoorBell/wiki/How-to-convert-sheet-music-into-an-Arduino-Sketch
+- Note Duratioon calculation: https://rechneronline.de/musik/note-length.php
+- Super Mario Bross 1987 music sheet: http://www.mariopiano.com/mario-sheet-music-overworld-main-theme.html
+- Arduino music sheet convertion: https://github.com/nseidle/AxelF_DoorBell/wiki/How-to-convert-sheet-music-into-an-Arduino-Sketch
 	 
