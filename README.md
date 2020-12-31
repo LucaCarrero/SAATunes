@@ -27,3 +27,8 @@ What I would like to add in the future
 		 - Using the SAA1099's built in envelope generators for different insturments (Maybe also some software generated envelopes, or wiggling the note's frequency back/forth slightly to produce a different sound?)
 	 	- Support for sustain pedal being used in a MIDI recording (Not sure if Len's original library supports this or not)
 	 
+
+Note Duratioon calculation: https://rechneronline.de/musik/note-length.php
+Super Mario Bross 1987 music sheet: http://www.mariopiano.com/mario-sheet-music-overworld-main-theme.html
+Arduino music sheet convertion: https://github.com/nseidle/AxelF_DoorBell/wiki/How-to-convert-sheet-music-into-an-Arduino-Sketch
+	 
