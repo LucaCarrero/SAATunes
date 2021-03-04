@@ -19,12 +19,14 @@ void tune_stepscore (void);
 // ******** Code Blocks ******** \\
 
 //Pulses the WR pin connected to the SA1099 to load an address
+/*
 void writeAddress() {
   digitalWrite(WR, LOW);
   delayMicroseconds(5);
   digitalWrite(WR, HIGH);
   
 }
+*/
 
 // function to write data on saa
 void pf575_write(uint16_t data) 
@@ -36,9 +38,9 @@ void pf575_write(uint16_t data)
 }
 
 void writeDataSAA(uint8_t data, uint8_t type){
-  pf575_write(( type || 0 ), data);
+  pf575_write(word(( type || 0 ), data));
   delayMicroseconds(5);
-  pf575_write(( type || 1 ), data);
+  pf575_write(word(( type || 1 ), data));
 }
 
 // class wrapper for play function
@@ -62,62 +64,84 @@ void SAATunes::init_pins (byte AZ, byte WE) {
 	digitalWrite(WR, HIGH);
 	
 	//Reset/Enable all the sound channels
-	digitalWrite(AO, HIGH);
-	pf575_write(word(0x00,0x1C));
+	//digitalWrite(AO, HIGH);
+	//pf575_write(word(0x00,0x1C));
     //PORTD = 0x1C;
-    writeAddress();
+    //writeAddress();
 
-    digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x02));
+  writeDataSAA(0x1C, 2);
+
+    //digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x02));
     //PORTD = 0x02;
-    writeAddress();
+    //writeAddress();
 
-    digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x00));
+  writeDataSAA(0x02, 0);
+
+    //digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x00));
     //PORTD = 0x00;
-    writeAddress();
-	
-	digitalWrite(AO, HIGH);
-	pf575_write(word(0x00,0x1C));
+    //writeAddress();
+  
+   writeDataSAA(0x00, 0);
+
+	//digitalWrite(AO, HIGH);
+	//pf575_write(word(0x00,0x1C));
     //PORTD = 0x1C;
-    writeAddress();
+    //writeAddress();
 
-    digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x01));
+  writeDataSAA(0x1C, 2);
+
+    //digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x01));
     //PORTD = B00000001;
-    writeAddress();
+    //writeAddress();
 	
+  writeDataSAA(0x01, 0);
+
 	//Disable the noise channels
-	digitalWrite(AO, HIGH);
-	pf575_write(word(0x00,0x15));
+	//digitalWrite(AO, HIGH);
+	//pf575_write(word(0x00,0x15));
 	//PORTD = 0x15;
-	writeAddress();
+	//writeAddress();
 
-	digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x00));
+  writeDataSAA(0x15, 2);
+
+	//digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x00));
 	//PORTD = B00000000;
-	writeAddress();
+	//writeAddress();
 	
+  writeDataSAA(0x00, 0);
+  
 	//Disable envelopes on Channels 2 and 5
-	digitalWrite(AO, HIGH);
-	pf575_write(word(0x00,0x18));
+	//digitalWrite(AO, HIGH);
+	//pf575_write(word(0x00,0x18));
 	//PORTD = 0x18;
-	writeAddress();
+	//writeAddress();
 
-	digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x00));
+  writeDataSAA(0x18, 2);
+
+	//digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x00));
 	//PORTD = B00000000;
-	writeAddress();
+	//writeAddress();
 	
-	digitalWrite(AO, HIGH);
-	pf575_write(word(0x00,0x19));
-	//PORTD = 0x19;
-	writeAddress();
+  writeDataSAA(0x00, 0);
 
-	digitalWrite(AO, LOW);
-	pf575_write(word(0x00,0x00));
+	//digitalWrite(AO, HIGH);
+	//pf575_write(word(0x00,0x19));
+	//PORTD = 0x19;
+	//writeAddress();
+
+  writeDataSAA(0x19, 2);
+
+	//digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,0x00));
 	//PORTD = B00000000;
-	writeAddress();
+	//writeAddress();
+
+  writeDataSAA(0x00, 0);
 }
 
 
@@ -144,19 +168,23 @@ void tune_playnote (byte chan, byte note, byte volume) {
   prevOctaves[chan] = octave; //Set this variable so we can remember /next/ time what octave was /last/ played on this channel
 
   //Octave addressing and setting code:
-  digitalWrite(AO, HIGH);
-  pf575_write(word(0x00,octaveAdr[chan / 2]));
-  //PORTD = octaveAdr[chan / 2];
-  writeAddress();
+  //digitalWrite(AO, HIGH);
+  //pf575_write(word(0x00,octaveAdr[chan / 2]));
 
-  digitalWrite(AO, LOW);
+  writeDataSAA(octaveAdr[chan / 2], 2);
+  //PORTD = octaveAdr[chan / 2];
+  //writeAddress();
+
+  //digitalWrite(AO, LOW);
   if (chan == 0 || chan == 2 || chan == 4) {
-	  pf575_write(word(0x00,octave | (prevOctaves[chan + 1] << 4)));
+	  //pf575_write(word(0x00,octave | (prevOctaves[chan + 1] << 4)));
+    writeDataSAA( (octave | (prevOctaves[chan + 1] << 4)) , 0);
     //PORTD = octave | (prevOctaves[chan + 1] << 4); //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
   }
   
   if (chan == 1 || chan == 3 || chan == 5) {   
-	pf575_write(word(0x00,(octave << 4) | prevOctaves[chan - 1]));
+	  //pf575_write(word(0x00,(octave << 4) | prevOctaves[chan - 1]));
+     writeDataSAA( ((octave << 4) | prevOctaves[chan - 1])) , 0);
     //PORTD = (octave << 4) | prevOctaves[chan - 1]; //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
   }
   
@@ -164,37 +192,46 @@ void tune_playnote (byte chan, byte note, byte volume) {
   
   //Note addressing and playing code
   //Set address to the channel's address
-  digitalWrite(AO, HIGH);
-  pf575_write(word(0x00,channelAdr[chan]));
+  //digitalWrite(AO, HIGH);
+  //pf575_write(word(0x00,channelAdr[chan]));
   //PORTD = channelAdr[chan];
-  writeAddress();
+  //writeAddress();
+
+  writeDataSAA(channelAdr[chan], 2);
 
   //EXPERIEMNTAL WARBLE CODE
   noteAdr[noteVal] += random(-2, 2); //a plus/minus value of 15 gives a really out of tune version
   
   
   //Write actual note data
-  digitalWrite(AO, LOW);
-  pf575_write(word(0x00,noteAdr[noteVal]));
+  //digitalWrite(AO, LOW);
+  //pf575_write(word(0x00,noteAdr[noteVal]));
   //PORTD = noteAdr[noteVal];
-  writeAddress();
+  //writeAddress();
+
+  writeDataSAA(noteAdr[noteVal], 0);
 
   //Volume updating
   //Set the Address to the volume channel
   byte volAddress[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
   
-	digitalWrite(AO, HIGH);
- 	pf575_write(word(0x00, volAddress[byte(chan)]));
-	writeAddress();
+	//digitalWrite(AO, HIGH);
+ 	//pf575_write(word(0x00, volAddress[byte(chan)]));
+	//writeAddress();
+
+   writeDataSAA(volAddress[byte(chan)], 2);
 
   #if DO_VOLUME
 	//Velocity is a value from 0-127, the SAA1099 only has 16 levels, so divide by 8.
      byte vol = volume / 8;
 
-	digitalWrite(AO, LOW);
-	pf575_write(word(0x00,(vol << 4) | vol));
+	//digitalWrite(AO, LOW);
+	//pf575_write(word(0x00,(vol << 4) | vol));
 	//PORTD = (vol << 4) | vol;
-	writeAddress();
+	//writeAddress();
+  
+  writeDataSAA((vol << 4) | vol), 0);
+
   #else
 		
 	//If we're not doing velocity, then just set it to max.
@@ -214,14 +251,18 @@ void tune_playnote (byte chan, byte note, byte volume) {
 void tune_stopnote (byte chan) {
   	byte volAddress[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
   
-	digitalWrite(AO, HIGH);
+	//digitalWrite(AO, HIGH);
 	//PORTD = volAddress[byte(chan)];
- 	pf575_write(word(0x00, volAddress[byte(chan)]));
-	writeAddress();
+ 	//pf575_write(word(0x00, volAddress[byte(chan)]));
+	//writeAddress();
+  
+  writeDataSAA(volAddress[byte(chan)], 2);
 
-	digitalWrite(AO, LOW);
+	//digitalWrite(AO, LOW);
 	//PORTD = 0x00;
-  	pf575_write(word(0x00,0x00));
-	writeAddress();
+  //pf575_write(word(0x00,0x00));
+	//writeAddress();
+
+  writeDataSAA(0x00, 0);
 }
 
