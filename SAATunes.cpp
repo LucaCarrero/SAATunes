@@ -184,11 +184,11 @@ void tune_playnote (byte chan, byte note, byte volume) {
   
   if (chan == 1 || chan == 3 || chan == 5) {   
 	  //pf575_write(word(0x00,(octave << 4) | prevOctaves[chan - 1]));
-     writeDataSAA( ((octave << 4) | prevOctaves[chan - 1])) , 0);
+    writeDataSAA( ((octave << 4) | prevOctaves[chan - 1])  , 0);
     //PORTD = (octave << 4) | prevOctaves[chan - 1]; //Do fancy math so that we don't overwrite what's already on the register, except in the area we want to.
   }
   
-  writeAddress();
+  //writeAddress();
   
   //Note addressing and playing code
   //Set address to the channel's address
@@ -230,7 +230,7 @@ void tune_playnote (byte chan, byte note, byte volume) {
 	//PORTD = (vol << 4) | vol;
 	//writeAddress();
   
-  writeDataSAA((vol << 4) | vol), 0);
+  writeDataSAA(((vol << 4) | vol), 0);
 
   #else
 		
