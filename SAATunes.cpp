@@ -35,6 +35,12 @@ void pf575_write(uint16_t data)
   Wire.endTransmission();
 }
 
+void writeDataSAA(uint8_t data, uint8_t type){
+  pf575_write(( type || 0 ), data);
+  delayMicroseconds(5);
+  pf575_write(( type || 1 ), data);
+}
+
 // class wrapper for play function
 void SAATunes::musicNote(byte chan, byte note, byte volume){
 	tune_playnote ( chan,  note,  volume);
